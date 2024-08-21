@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>neXt | Time Series Classification</title>
+    <style>
+        body {
+            background-color: #f0f0f0; /* Grey background color */
+            margin: 0; /* Remove default margin */
+            padding: 0; /* Remove default padding */
+            font-family: Arial, sans-serif; /* Set font family */
+        }
+
+        .logo {
+            display: block; /* Display logo as a block element */
+            margin: 0 auto; /* Center the logo horizontally */
+            width: 200px; /* Set width of the logo */
+            height: auto; /* Maintain aspect ratio */
+            padding-top: 20px; /* Add some padding at the top */
+        }
+
+        .chart-container {
+            width: 50%;
+            float: left;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        .buttons-container {
+            text-align: center; /* Center align contents */
+            margin-top: 20px; /* Add top margin */
+        }
+
+        #startCollecting,
+        #Predict {
+            display: inline-block; /* Display buttons as inline-block elements */
+            margin: 0 10px; /* Add horizontal margin to create space between buttons */
+        }
+
+        #CycleState,
+        #PredictionResult {
+            margin: 20px auto; /* Add top margin and center horizontally */
+            text-align: center; /* Center text */
+            font-size: 24px; /* Set font size */
+        }
+        #startCollecting[disabled] {
+            opacity: 0.5; /* Reduce opacity when button is disabled */
+            cursor: not-allowed; /* Change cursor to not-allowed when button is disabled */
+        }
+        #Predict[disabled] {
+            opacity: 0.5; /* Reduce opacity when button is disabled */
+            cursor: not-allowed; /* Change cursor to not-allowed when button is disabled */
+        }
+        header {
+            display: flex;
+            align-items: center; /* Align items vertically */
+            justify-content: space-between; /* Distribute items evenly along the main axis */
+            color: #530000; /* Text color for header */
+            padding: 10px; /* Padding for header */
+            background-color: #FFF
+        }
+
+        .logo {
+            width: 250px; /* Set width of logo container */
+        }
+        .logo img {
+            width: auto; /* Set width to auto to maintain aspect ratio */
+            height: auto; /* Set height to auto to maintain aspect ratio */
+            max-width: 300px; /* Set max-width to 40 pixels */
+            max-height: 300px; /* Set max-height to 40 pixels */
+        }
+        .burgundy-bar {
+            height: 40px; /* Adjust height of the bar */
+            background-color: #530000; /* Set background color of the bar */
+        }
+        .burgundy-bar button {
+            background-color: #530000; /* Set button background color */
+            color: white; /* Set button text color */
+            border: 1px; /* Set border color */
+            padding: 4.5px 4px; /* Add padding to the button */
+            cursor: pointer; /* Change cursor to pointer */
+            font-size: 12px; /* Set font size */
+            margin: 0 auto; /* Center align the button */
+        }
+        .burgundy-bar button:hover {
+            background-color: #3d0101; /* Change background on hover */
+        }
+        h1 {
+            font-size: 48px; /* Set the font size to 24 pixels */
+        }
+        .container {
+            width: 50%; /* Make the table take full width */
+            margin: 0 auto; /* Center the container horizontally */
+            border-collapse: collapse;
+            margin-top: 50 px;
+        }
+
+        .cycle-state {
+            text-align: left; /* Center align text */
+            font-size: 18px; /* Set font size */
+            padding: 5px; /* Add padding to each cell */
+            width: 50%; /* Set a fixed width for the table cells */
+            border: 1px solid #000; /* Add a 1px solid black border to cells */
+        }
+        .cycle-state1 {
+            text-align: center; /* Center align text */
+            font-size: 18px; /* Set font size */
+            padding: 5px; /* Add padding to each cell */
+            width: 50%; /* Set a fixed width for the table cells */
+            border: 1px solid #000; /* Add a 1px solid black border to cells */
+            padding: 8px; /* Add padding to cells for better appearance */
+        }
+
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="{{ url_for('static', filename='USClogo.png') }}" alt="Logo">
+        </div>
+        <h1>neXt | Future Factories</h1>
+        <div class="logo">
+            <img src="{{ url_for('static', filename='nextLogo.png') }}" alt="Logo">
+        </div>
+    </header>
+    <div class="burgundy-bar">
+        <button style = "margin-left: 100px; font-size: 25px; color: white;"><a style="color: white;text-decoration: none;" href="TSC.html">Time Series Classification</a></button>
+        <button style = "margin-left: 200px; font-size: 25px; color: white;"><a style="color: white;text-decoration: none;" href="RCA.html">Root Cause Analysis</a></button>
+    </div>
+    <h2 align="center" style="margin-bottom: 0px;" > Time Series Classification</h2>
+
+    <div class="chart-container">
+        <canvas id="myChart"></canvas>
+    </div>
+
+
+    <table class="container" style="margin-top: 30px";>
+        <tr>
+            <td id="CycleState1" class="cycle-state1" style="font-weight: bold">Cycle State:</td>
+            <td id="CycleState" class="cycle-state" style ="font-size: 18px">Waiting on Input</td>
+        </tr>
+    </table>
+
+    <table class="container">
+        <tr>
+            <td id="Prediction" class="cycle-state1" style="font-weight: bold;">Classification Result:</td>
+            <td id="PredictionResult" class="cycle-state" style ="font-size: 18px">Collect Data First</td>
+        </tr>
+    </table>
+    <div class="buttons-container">
+        <button id="startCollecting">Start Collecting</button>
+        <button id="Predict">Classify</button>
+    </div>
+    <div id="Instructions">
+       <b>Instructions:</b> <br><br>
+        1) Before starting the assembly process, press the "Start Collecting" Button<br><br>
+        2) If the assembly has not started, "No Values" will appear in the table above<br><br>
+        3) Once the assembly process starts, the corresponding values are shown in the graph to the left. <br><br>
+        4) The classify button is greyed out until the assembly process is complete. Once all the required data is collected, the button will become available.<br><br>
+        5) A classification result will be shown shortly after the button is pressed in the table above. <br><br>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var labels = [];
+        var datasets = [
+            {
+                label: 'R02 Potentiometer',
+                data: [],
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'R03 Potentiometer',
+                data: [],
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }
+        ];
+
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        // Define a variable to store the interval ID
+        var intervalId;
+        // Define a variable to track the current mode: 'collect' or 'predict'
+        var mode = 'collect';
+
+        // Function to start collecting data
+        function startCollectingData() {
+            document.getElementById('startCollecting').disabled = true;
+
+            mode = 'collect'; // Set the mode to 'collect'
+            intervalId = setInterval(fetchData, 1000); // Start collecting data
+        }
+
+
+        function fetchData() {
+            if (mode === 'predict') {
+                return; // Stop execution if the mode is 'predict'
+            }
+            fetch('/api/data')
+                .then(response => response.json())
+                .then(data => {
+                    var newDataPoint1 = data.r02;  // Use the value of R02 from the API
+                    var newDataPoint2 = data.r03;  // Use the value of R03 from the API
+                    var CycleState = data.CycleState; // Assuming 'CycleState' is the key for the string
+                    if (CycleState === 9) {
+                        document.getElementById('Predict').disabled = false;
+                    } else {
+                        document.getElementById('Predict').disabled = true;
+                    }
+                    labels.push(labels.length);
+                    datasets[0].data.push(newDataPoint1);
+                    datasets[1].data.push(newDataPoint2);
+                    myChart.update();
+                    document.getElementById('CycleState').textContent = CycleState;
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        }
+
+
+        // Function to call the predict API
+        function predict() {
+            document.getElementById('Predict').disabled = true;
+            document.getElementById('PredictionResult').textContent = "Analyzing"
+            mode = 'predict'; // Set the mode to 'predict'
+            fetch('/predict')
+                .then(response => response.json())
+                .then(data => {
+                    var newDataPoint1 = data.prediction;  // Use the value of prediction from the API
+                    document.getElementById('PredictionResult').textContent = newDataPoint1;
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        }
+
+        // Event listener for the start collecting button
+        document.getElementById('startCollecting').addEventListener('click', startCollectingData);
+
+        // Event listener for the predict button
+        document.getElementById('Predict').addEventListener('click', predict);
+
+
+    </script>
+</body>
+</html>
